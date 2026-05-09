@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Schools — Global Comparison Dashboard v3</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Calibri, sans-serif; background: #F5F4F0; color: #1a1a1a; }
+.page { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* ── Header ── */
+.header { background: #213B34; color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 16px; }
+.header h1 { font-size: 20px; font-weight: 700; color: white; }
+.header p { font-size: 13px; color: #A1CEAD; margin-top: 4px; }
+.header-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.htag { background: #006325; color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+.htag-blue { background: #185FA5; }
+.htag-gold { background: #854F0B; }
+
+/* ── Summary bar ── */
+.summary-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.sc { background: #213B34; color: white; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 130px; text-align: center; }
+.sc .val { font-size: 20px; font-weight: 700; color: #A1CEAD; }
+.sc .lbl { font-size: 10px; color: #D9E8E2; margin-top: 2px; }
+
+/* ── Controls ── */
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+.filter-label { font-size: 12px; color: #5F5E5A; font-weight: 600; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #006325; background: white; color: #006325; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.filter-btn.active, .filter-btn:hover { background: #006325; color: white; }
+.filter-btn.bil-filter { border-color: #7CC5EB; color: #185FA5; }
+.filter-btn.bil-filter.active, .filter-btn.bil-filter:hover { background: #185FA5; color: white; border-color: #185FA5; }
+.sort-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.sort-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid #D3D1C7; background: transparent; color: #5F5E5A; font-size: 11px; cursor: pointer; }
+.sort-btn.active { background: #213B34; color: white; border-color: #213B34; }
+
+/* ── Section dividers ── */
+.sdiv { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #006325; background: #D9E8E2; padding: 6px 14px; border-radius: 6px; margin: 16px 0 10px; display: flex; align-items: center; gap: 8px; }
+.sdiv.blue { color: #185FA5; background: #E6F1FB; }
+.sdiv.gold { color: #633806; background: #FAEEDA; }
+
+/* ── Grid & Cards ── */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.card { background: white; border: 0.5px solid #D3D1C7; border-radius: 12px; padding: 16px; transition: border-color 0.15s; }
+.card:hover { border-color: #006325; }
+.card.intl { border-left: 3px solid #7CC5EB; }
+.card.spanish { border-left: 3px solid #006325; border-left-width: 4px; }
+
+/* ── Bilingual star badge ── */
+.bil-star { display: inline-block; background: #006325; color: white; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 5px; }
+.bil-star.high { background: #213B34; }
+.bil-star.medium { background: #7CC5EB; color: #042C53; }
+
+.school-name { font-size: 14px; font-weight: 700; color: #213B34; line-height: 1.3; }
+.school-location { font-size: 11px; color: #5F5E5A; margin-top: 2px; }
+.badge-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+.badge-public { background: #D9E8E2; color: #213B34; }
+.badge-private { background: #BFE2F6; color: #0C3A55; }
+.badge-ca { background: #A1CEAD; color: #213B34; }
+.badge-naab { background: #006325; color: white; }
+.badge-riba { background: #213B34; color: #A1CEAD; }
+.badge-intl { background: #7CC5EB; color: #0C3A55; }
+.badge-es { background: #FAEEDA; color: #633806; }
+.rank-box { text-align: right; flex-shrink: 0; margin-left: 8px; }
+.rank-num { font-size: 20px; font-weight: 700; color: #006325; line-height: 1; }
+.rank-label { font-size: 9px; color: #5F5E5A; text-transform: uppercase; letter-spacing: 0.4px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 9px; }
+.stat { background: #F5F4F0; border-radius: 6px; padding: 7px 9px; }
+.stat-label { font-size: 9px; color: #5F5E5A; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 1px; }
+.stat-val { font-size: 12px; font-weight: 700; color: #1a1a1a; }
+.stat-val.green { color: #006325; }
+.stat-val.orange { color: #854F0B; }
+.stitle { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: #006325; font-weight: 700; margin: 8px 0 4px; }
+.bar-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+.bar-label { font-size: 10px; color: #5F5E5A; width: 80px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 5px; background: #D9E8E2; border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-val { font-size: 10px; color: #1a1a1a; font-weight: 600; width: 55px; text-align: right; }
+.hnote { font-size: 11px; color: #213B34; background: #D9E8E2; border-radius: 6px; padding: 7px 10px; margin-top: 8px; border-left: 3px solid #006325; line-height: 1.5; }
+.hnote.intl { background: #E6F1FB; border-left-color: #185FA5; color: #042C53; }
+.hnote.bilingual { background: #EAF3DE; border-left-color: #3B6D11; color: #213B34; }
+.tbadge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; margin-top: 5px; }
+.friendly { background: #EAF3DE; color: #3B6D11; }
+.competitive { background: #FAEEDA; color: #633806; }
+.hard { background: #FCEBEB; color: #A32D2D; }
+
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+<h2 style="position:absolute;left:-9999px;">Architecture School Global Comparison — 18 Schools with Bilingual Advantage Highlighted</h2>
+
+<div class="header">
+  <h1>Architecture Schools — Global Comparison Dashboard</h1>
+  <p>Norco CC · Florence study abroad · Spain internship · Bilingual Spanish/English · 2026 data</p>
+  <div class="header-tags">
+    <span class="htag">15 US Schools</span>
+    <span class="htag">5 International Private</span>
+    <span class="htag bil-filter htag-blue">🌐 Bilingual advantage flagged</span>
+    <span class="htag htag-gold">Spain internship = differentiator</span>
+  </div>
+</div>
+
+<!-- KEY DIFFERENTIATION TILES -->
+<div style="margin-bottom:18px;">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:#213B34;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-block;width:20px;height:3px;background:#006325;border-radius:2px;"></span>
+    Vania's Key Differentiators as an Architecture Applicant
+    <span style="display:inline-block;width:20px;height:3px;background:#006325;border-radius:2px;"></span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+    <div style="background:#213B34;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#127760;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Bilingual — Spanish &amp; English</div>
+      <div style="font-size:11px;color:#A1CEAD;line-height:1.6;">Native-level Spanish + English unlocks US, Spain, and LATAM architecture markets. Bilingual architects earn $8–15K more at CA, TX, and NY firms. Most applicants simply don't have this.</div>
+    </div>
+    <div style="background:#006325;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#127963;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Spain Architecture Internship</div>
+      <div style="font-size:11px;color:#A1CEAD;line-height:1.6;">3 months at a real firm doing home renovations. Real drawings. Real clients. Real construction. Very few 21-year-old applicants can say this — it's the core of a compelling portfolio.</div>
+    </div>
+    <div style="background:#213B34;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#127981;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Florence Study Abroad</div>
+      <div style="font-size:11px;color:#A1CEAD;line-height:1.6;">3 months studying architecture in the city that defined Western design. Florence sketches = immediate portfolio material. Resonates directly at Cornell (Rome program), Notre Dame (Rome semester), Bartlett, and Polimi.</div>
+    </div>
+    <div style="background:#006325;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#127891;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Community College Foundation</div>
+      <div style="font-size:11px;color:#A1CEAD;line-height:1.6;">Norco College (CA CC) activates the California community college priority pathway at UCLA, UCB, Cal Poly SLO, and Cal Poly Pomona. No other background gets this structural advantage in CA admissions.</div>
+    </div>
+    <div style="background:#213B34;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#128205;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Inland Empire — High Demand Market</div>
+      <div style="font-size:11px;color:#A1CEAD;line-height:1.6;">Eastvale / Norco / IE is one of the fastest-growing construction regions in the US. Bilingual architects here are in extreme demand. Local roots + bilingual = a rare, marketable combination from day one of practice.</div>
+    </div>
+    <div style="background:#854F0B;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:26px;line-height:1;margin-bottom:8px;font-family:sans-serif;">&#127775;</div>
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:5px;">Cross-Cultural Design Eye</div>
+      <div style="font-size:11px;color:#D9E8E2;line-height:1.6;">Having studied and worked across US, Italy, and Spain by age 21, Vania brings a cross-cultural design perspective that most applicants spend 5 years in school trying to develop. It's already there. Use it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="summary-bar">
+  <div class="sc"><div class="val">20</div><div class="lbl">Schools total</div></div>
+  <div class="sc"><div class="val">🌟 8</div><div class="lbl">Bilingual HIGH advantage schools</div></div>
+  <div class="sc"><div class="val">+$8–15K</div><div class="lbl">Bilingual salary premium (US firms)</div></div>
+  <div class="sc"><div class="val">CPP Open</div><div class="lbl">Spring 2027 apps open NOW — Aug 31</div></div>
+</div>
+
+<div class="controls">
+  <span class="filter-label">Filter:</span>
+  <button class="filter-btn active" onclick="filterCards('all',this)">All (20)</button>
+  <button class="filter-btn" onclick="filterCards('usonly',this)">US Schools (15)</button>
+  <button class="filter-btn" onclick="filterCards('intl',this)">International (5)</button>
+  <button class="filter-btn" onclick="filterCards('private',this)">Private only</button>
+  <button class="filter-btn" onclick="filterCards('transfer',this)">Transfer-friendly</button>
+  <button class="filter-btn" onclick="filterCards('ca',this)">California</button>
+  <button class="filter-btn bil-filter" onclick="filterCards('bilingual',this)">🌐 Bilingual HIGH</button>
+</div>
+<div class="sort-row">
+  <span class="filter-label">Sort:</span>
+  <button class="sort-btn active" onclick="sortCards('rank',this)">By ranking (grouped)</button>
+  <button class="sort-btn" onclick="sortCards('tuition',this)">Tuition — lowest first ↑</button>
+  <button class="sort-btn" onclick="sortCards('acceptance',this)">Acceptance — easiest first ↑</button>
+</div>
+
+<div id="cardGrid"></div>
+</div>
+
+<script>
+// bilingual: 'high' | 'medium' | 'low'
+const schools = [
+  // ── INTERNATIONAL PRIVATE ─────────────────────────────────────────────
+  {
+    name: "The Bartlett School of Architecture — UCL",
+    location: "London, United Kingdom",
+    type:"private", ca:false, intl:true,
+    rank:1, rankLabel:"#1 global (QS 2026)",
+    archRank:"#1 world 4 yrs running", overallRank:"#9 QS World",
+    tuition:42000, tuitionLabel:"£31,100/yr intl (~$39K)",
+    acceptance:8, acceptanceLabel:"7.5% (arch UG)",
+    transferType:"competitive",
+    gpa:"Strong portfolio + academics",
+    employRate:"93.9% within 15 months",
+    startSalary:"£30,000–£42,000 (~$38K–$53K)",
+    accred:"ARB / RIBA Part 1&2", naab:false,
+    degree:"3-yr BSc → 2-yr MArch",
+    bilingual:"medium",
+    bilingualNote:"Spanish fluency strengthens her personal statement and diversity angle — Bartlett values cultural pluralism. Her Spain internship is directly relevant to the school's international studio culture.",
+    highlight:"World #1 consecutively. 70% portfolio-assessed. Graduates at Foster+Partners, Zaha Hadid, Rogers Stirk. London QS #3 student city. Florence/Spain experience = major differentiator.",
+    transferNote:"⏰ UCAS deadline: Jan 15, 2027. Start your portfolio NOW — you already have the material. Pull your Florence sketches and Spain renovation drawings together into a PDF. Bartlett Year 2 entry is real and achievable. You've already lived the international experience they're looking for — most applicants only dream about it.",
+    masterPlan:"The Bartlett's own 2-yr MArch (ARB/RIBA Part 2) is the natural continuation after the BSc — no need to transfer. Completing both parts here positions Vania to register as a UK architect and work globally. For US licensure, she'd also need to pass NCARB EESA evaluation + ARE exams.",
+    intlNote:"UK Student Visa required. IELTS 6.5+. 3-yr BSc then 2-yr MArch = 5 yrs to full ARB registration. Living costs London: ~£14,000–£18,000/yr.",
+    deadline:"Jan 15, 2027 (UCAS art/arch deadline)",
+    studentSat:"⭐⭐⭐⭐⭐", roi:"Excellent — world brand"
+  },
+  {
+    name: "AA School of Architecture — Architectural Association",
+    location: "London, United Kingdom",
+    type:"private", ca:false, intl:true,
+    rank:2, rankLabel:"Top 5 world — most avant-garde",
+    archRank:"Top 5 globally; #11 BAM Masters", overallRank:"Specialist school",
+    tuition:30000, tuitionLabel:"£22,000/yr intl (~$28K)",
+    acceptance:10, acceptanceLabel:"~10%",
+    transferType:"friendly",
+    gpa:"Portfolio-driven",
+    employRate:"~85–90%",
+    startSalary:"£28,000–£40,000 (~$35K–$51K)",
+    accred:"ARB / RIBA Part 1&2", naab:false,
+    degree:"3-yr BA(Hons) + 2-yr MArch Diploma",
+    bilingual:"medium",
+    bilingualNote:"The AA has a uniquely large Latin American student community — bilingual Spanish fluency helps socially and professionally, and her Spain internship experience aligns with the AA's European design culture.",
+    highlight:"Founded 1847. 850 students, 80+ nationalities. Radical experimental design. 1 in 5 receives financial support. Dedicated AA Transfer Programme (GradCert) — world's first graduate access programme in architecture.",
+    transferNote:"⏰ Rolling deadline — applications reviewed Feb–Apr 2027 for Sept 2027. Apply early (by Jan 2027) for best chance at financial aid. The AA Transfer Programme was literally created for someone like Vania: international background, real-world experience, pivoting into architecture. Apply at aaschool.ac.uk — not UCAS.",
+    masterPlan:"The AA Diploma Programme (MArch) is the direct continuation — completed after the BA(Hons) at the same school. Together, BA + Diploma = RIBA Parts 1 & 2. After 2 yrs of work experience, Vania can sit the RIBA Part 3 for full registration. For US practice, NCARB EESA evaluation is required post-graduation.",
+    intlNote:"UK Student Visa required. Apply directly (not UCAS). Rolling deadline. No on-campus housing — budget £1,200–£1,800/month London.",
+    deadline:"Rolling / Feb–Apr 2027 for Sept 2027 entry",
+    studentSat:"⭐⭐⭐⭐½", roi:"Strong — cult prestige, portfolio-driven"
+  },
+  {
+    name: "TU Delft — Faculty of Architecture",
+    location: "Delft, Netherlands",
+    type:"private", ca:false, intl:true,
+    rank:3, rankLabel:"#3 global (QS 2026)",
+    archRank:"#3 world; #1 continental Europe", overallRank:"#47 QS World",
+    tuition:19000, tuitionLabel:"€17,310–€18,175/yr (~$19K)",
+    acceptance:50, acceptanceLabel:"~50%; MSc competitive",
+    transferType:"competitive",
+    gpa:"75%+ equiv; IELTS 7.0",
+    employRate:"82% within 6 months",
+    startSalary:"€40,000–€55,000 (~$44K–$61K)",
+    accred:"NVAO / ARB-recognized", naab:false,
+    degree:"3-yr BSc (Dutch) + 2-yr MSc (English)",
+    bilingual:"low",
+    bilingualNote:"Dutch is the BSc language — Spanish doesn't help directly here. Best path is a US B.Arch first, then MSc Architecture in English at Delft.",
+    highlight:"QS #3 world 2026. All MSc programs in English. Europe's largest architecture faculty. OMA (Rem Koolhaas — Delft alum), BIG, Snøhetta top employers.",
+    transferNote:"⏰ MSc application deadline: Feb 1, 2027. This is Vania's graduate destination — after a US B.Arch, apply here for a world-class master's at a fraction of US grad school cost. Start a NAAB B.Arch now (Cal Poly SLO or UCLA), keep her GPA strong, and circle back here in 5 years. The Holland Scholarship (€5,000) is worth applying for from day one.",
+    masterPlan:"TU Delft MSc Architecture (2 yrs, ~€18K/yr total) is the ideal master's destination after a US B.Arch. It's one of the best-value top-3 global programs. After graduation, Vania can practice in Europe (NVAO accredited) and the US (NAAB B.Arch + NCARB path). Holland Scholarship (€5,000) helps offset cost.",
+    intlNote:"Netherlands MVV/residence permit. BSc in Dutch — not direct entry. MSc Architecture in English; apply after B.Arch. Holland Scholarship €5,000 available.",
+    deadline:"Feb 1, 2027 (MSc Sept 2027 intake)",
+    studentSat:"⭐⭐⭐⭐½", roi:"Exceptional value at world-class level"
+  },
+  {
+    name: "IE School of Architecture — IE University",
+    location: "Segovia & Madrid, Spain",
+    type:"private", ca:false, intl:true,
+    rank:4, rankLabel:"QS #435 overall; top Spain private",
+    archRank:"Leading private arch school Spain", overallRank:"#435 QS; #201–300 THE Impact",
+    tuition:29000, tuitionLabel:"€26,500/yr (~$29K) — 2026–27",
+    acceptance:15, acceptanceLabel:"10–15%",
+    transferType:"competitive",
+    gpa:"Strong academic record; portfolio",
+    employRate:"~90% (strong industry network)",
+    startSalary:"€32,000–€50,000 (~$35K–$55K); higher in US market",
+    accred:"Spanish Ministry / EHEA (Bologna)", naab:false,
+    degree:"5-yr Bachelor in Architectural Studies (English)",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGHEST bilingual advantage of all schools. Program is entirely in English yet based in Spain — she can use Spanish daily in Segovia/Madrid, network in both languages, and leverage her Spain internship directly. 80%+ international students. Zero adaptation cost as a native Spanish speaker.",
+    highlight:"100% taught in English at Segovia and Madrid. 80%+ international students. Partners with 160 universities incl. Polimi, RMIT, Melbourne. Segovia: 25 min by high-speed train from Madrid.",
+    transferNote:"⏰ Rolling admissions — apply by April 2027 for Sept 2027 entry. This is the most natural school on this entire list for Vania. She already knows Spain. She already speaks the language. She already has contacts in a Spanish architecture firm. That's not a coincidence — that's a competitive moat. Gather Norco transcripts, prepare a credential evaluation, and build her portfolio around the Spain + Florence work she already has.",
+    masterPlan:"After the 5-yr Bachelor, pursue a Master's at Polimi (Milan, QS #6), TU Delft (QS #3), or Bartlett (QS #1) — IE has dual-degree partnerships with all three. Alternatively, return to the US for a NCARB-recognized M.Arch (Harvard GSD, Columbia, SCI-Arc) to gain US licensure eligibility. The IE degree is EHEA-recognized across Europe but requires NCARB EESA for US licensure.",
+    intlNote:"Spain Student Visa (Type D) required for stays >90 days. Segovia campus: €800–1,200/month. Madrid: €1,200–1,800/month. No language barrier — native Spanish speaker from day 1.",
+    deadline:"Rolling admissions; apply by Apr 2027 for Sept 2027",
+    studentSat:"⭐⭐⭐⭐", roi:"Strong — combines EU prestige + English + Spanish market"
+  },
+
+  // ── US SCHOOLS ─────────────────────────────────────────────────────────
+  {
+    name: "Massachusetts Institute of Technology (MIT)",
+    location: "Cambridge, MA",
+    type:"private", ca:false, intl:false,
+    rank:5, rankLabel:"#1 US (QS 2026 #2 global)",
+    archRank:"#1 US globally", overallRank:"#3 US News",
+    tuition:62000, tuitionLabel:"$62,000–$66,000/yr",
+    acceptance:7, acceptanceLabel:"7%",
+    transferType:"hard",
+    gpa:"3.9+", employRate:"94% within 6 months",
+    startSalary:"$72,000–$90,000",
+    accred:"NAAB", naab:true, degree:"B.Arch / M.Arch",
+    bilingual:"medium",
+    bilingualNote:"MIT values diversity intensely. Spanish fluency strengthens the personal statement — MIT architecture has a significant Latin American research agenda, and bilingual researchers are sought.",
+    highlight:"World leader computational + sustainable design. Graduates at SOM, Gensler, Perkins&Will.",
+    transferNote:"⏰ Undergrad deadline: Jan 1, 2027 (closed for this cycle). This is a stretch — apply alongside Cal Poly SLO and UCLA as primary targets. The long game: a strong B.Arch from a top public CA school + bilingual + international experience = a genuinely competitive MIT M.Arch application in 7–8 years. Dream big and build toward it.",
+    masterPlan:"MIT offers its own M.Arch and SMArchS (research-focused). If Vania completes a B.Arch elsewhere, MIT's graduate programs become a realistic long-term target — bilingual + international profile is highly competitive for MIT's Latin American Studies track in the M.Arch. Median time from B.Arch to M.Arch admission: 2–4 years work experience.",
+    intlNote:null, deadline:"Jan 1, 2027 (undergrad)",
+    studentSat:"⭐⭐⭐⭐⭐", roi:"Excellent long-term"
+  },
+  {
+    name: "Cornell University",
+    location: "Ithaca, NY",
+    type:"private", ca:false, intl:false,
+    rank:6, rankLabel:"#2 B.Arch US",
+    archRank:"Top 3 US B.Arch", overallRank:"#12 US News",
+    tuition:66000, tuitionLabel:"$65,000–$68,000/yr",
+    acceptance:12, acceptanceLabel:"12%",
+    transferType:"competitive",
+    gpa:"3.8+", employRate:"~90% within 1 yr",
+    startSalary:"$68,000–$88,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"medium",
+    bilingualNote:"Cornell has a built-in Rome semester — her Italy experience is a direct resonance. Spanish fluency opens Cornell's AAP Latin America fellowships including the $7K Hart Howerton Travel Grant.",
+    highlight:"Rome semester built-in. $7K travel fellowships. Ivy League prestige. Accepts 3rd-year transfers.",
+    transferNote:"⏰ Transfer deadline: Mar 15, 2027 — that's 10 months away. Vania's Florence semester directly mirrors Cornell's built-in Rome program — she already has the experience Cornell tries to give students in Year 3. Lead with that in her personal statement. Pull together her Florence drawings + Spain renovation portfolio now. Every week of preparation counts.",
+    masterPlan:"Cornell's own M.Arch (post-professional, 1 yr) or M.S.AAD are excellent next steps after the 5-yr B.Arch. Alternatively, use Cornell's strong alumni network to get into Harvard GSD, Columbia GSAPP, or a European M.Arch. Cornell B.Arch graduates are among the best-positioned for top M.Arch programs globally.",
+    intlNote:null, deadline:"Mar 15, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐", roi:"Excellent — Ivy brand"
+  },
+  {
+    name: "Harvard GSD",
+    location: "Cambridge, MA",
+    type:"private", ca:false, intl:false,
+    rank:7, rankLabel:"#4 global (QS)",
+    archRank:"#1 grad school US", overallRank:"#2 US News",
+    tuition:64000, tuitionLabel:"$64,000–$68,000/yr",
+    acceptance:14, acceptanceLabel:"~14% (grad)",
+    transferType:"hard",
+    gpa:"4.0+", employRate:"~90%+",
+    startSalary:"$75,000–$95,000",
+    accred:"NAAB", naab:true, degree:"M.Arch (grad only)",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. GSD runs an extensive Latin America research program. Bilingual applicants are recruited for TA roles, research, and studio partnerships. Cross-cultural story (Spanish + Florence + Spain + Norco CC) is exactly what GSD M.Arch essays want.",
+    highlight:"Graduate program only. Blends architecture, urban planning, landscape. Green design leader.",
+    transferNote:"⏰ M.Arch deadline: Jan 9, each year (plan for 2033–2034). Harvard GSD IS the long-term master's goal — not an undergrad option. The path starts today: enroll at Cal Poly SLO, UCB, or UCLA, graduate with a strong NAAB B.Arch, work 2–3 years at a firm with bilingual community projects, then apply. Vania's story — Inland Empire, Norco CC, Florence, Spain, bilingual — is exactly the narrative GSD M.Arch committees read and remember.",
+    masterPlan:"Harvard GSD M.Arch is the premier long-term target for Vania's profile. Path: B.Arch at Cal Poly SLO/UCLA (2027–2032) → 2–3 yrs at a firm in LA or Madrid → apply to GSD M.Arch (2034–2036). Bilingual + Spain + Florence + Norco CC community background = a genuinely compelling GSD application narrative. Avg GSD M.Arch applicant has 3 yrs work experience.",
+    intlNote:null, deadline:"Jan 9, 2027 (M.Arch grad)",
+    studentSat:"⭐⭐⭐⭐⭐", roi:"Best long-term — the ultimate master's target"
+  },
+  {
+    name: "Yale School of Architecture",
+    location: "New Haven, CT",
+    type:"private", ca:false, intl:false,
+    rank:8, rankLabel:"Top 5 US",
+    archRank:"Top 5 consistently", overallRank:"#3 US News",
+    tuition:67000, tuitionLabel:"$67,000–$70,000/yr",
+    acceptance:11, acceptanceLabel:"11%",
+    transferType:"hard",
+    gpa:"3.9+", employRate:"~88%",
+    startSalary:"$72,000–$92,000",
+    accred:"NAAB", naab:true, degree:"B.A. + M.Arch path",
+    bilingual:"medium",
+    bilingualNote:"Yale Architecture has active Latin American research partnerships. Spanish fluency + Spain internship = compelling narrative for Yale's emphasis on social/community architecture.",
+    highlight:"Renowned critical theory + design culture. Stunning Art campus. Strong alumni network.",
+    transferNote:"⏰ M.Arch deadline: ~Jan 2 each year (plan for 2033+). Yale undergrad transfer is nearly impossible — aim here for the M.Arch after a strong B.Arch. Yale's architecture program is rooted in social purpose and community impact. Vania's bilingual background serving the Inland Empire community is a Yale story. Start building that narrative now through the projects she takes on.",
+    masterPlan:"Yale M.Arch (2-yr post-professional or 3-yr for non-arch undergrads) is a top-5 long-term target. Known for critical theory and public interest architecture — Vania's bilingual + Norco CC community background aligns perfectly with Yale's social design mission. Apply after B.Arch + 2 yrs work experience.",
+    intlNote:null, deadline:"Jan 2, 2027 (undergrad); ~Jan 2029 (M.Arch — plan ahead)",
+    studentSat:"⭐⭐⭐⭐⭐", roi:"Strong — prestige premium"
+  },
+  {
+    name: "UC Berkeley — College of Environmental Design",
+    location: "Berkeley, CA",
+    type:"public", ca:true, intl:false,
+    rank:9, rankLabel:"#17 global (QS)",
+    archRank:"Top West Coast public", overallRank:"#20 US News",
+    tuition:46000, tuitionLabel:"$46,000–$55,000/yr (OOS)",
+    acceptance:16, acceptanceLabel:"16% (architecture)",
+    transferType:"friendly",
+    gpa:"3.6+", employRate:">90% within 6 months",
+    startSalary:"$60,000–$80,000",
+    accred:"NAAB", naab:true, degree:"B.Arch / M.Arch",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. UCB CED focuses on Latin American housing, urban equity, and cross-border design. Bilingual Spanish applicants from CA community colleges are a priority. Norco CC + Spanish + Spain = near-ideal Berkeley profile.",
+    highlight:"ACSA Award 2025. Gensler + SOM employers. CA CC transfers prioritized.",
+    transferNote:"⏰ UC Application opens Aug 1, 2026 — deadline Nov 30, 2026. That's less than 6 months away. Vania needs to be completing Cal-GETC coursework at Norco this semester and next. Berkeley CED prioritizes exactly her background: California CC, bilingual, community-oriented. This is not a reach — this is her school. Start her UC application in August.",
+    masterPlan:"Berkeley's own M.Arch (2-yr or 3-yr tracks) is a natural continuation and heavily research-focused on sustainability and urban equity — a perfect fit for Vania's bilingual/community profile. Alternatively, use Berkeley's global network to target Harvard GSD or TU Delft for the master's. Berkeley B.Arch is fully NAAB — ARE exams available immediately after graduation.",
+    intlNote:null, deadline:"Nov 30, 2026 (UC transfer)",
+    studentSat:"⭐⭐⭐⭐½", roi:"Excellent — NAAB + research master's pathway"
+  },
+  {
+    name: "Cal Poly San Luis Obispo — Architecture",
+    location: "San Luis Obispo, CA",
+    type:"public", ca:true, intl:false,
+    rank:10, rankLabel:"Top undergrad B.Arch US",
+    archRank:"#1 public B.Arch employer recognition", overallRank:"#2 West regional",
+    tuition:27000, tuitionLabel:"$27,000–$32,000/yr (OOS)",
+    acceptance:19, acceptanceLabel:"~19% (transfer, arch)",
+    transferType:"friendly",
+    gpa:"3.38–3.90 (transfer)", employRate:"~95%",
+    startSalary:"$58,000–$78,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"medium",
+    bilingualNote:"Southern CA market has enormous bilingual demand. Cal Poly SLO graduates with Spanish fluency in California and cross-border practices command a salary premium.",
+    highlight:"\"Learn by doing.\" 2-stage: GPA screen → portfolio review. Best public value B.Arch in US.",
+    transferNote:"⏰ Application window: Oct 1 – Dec 1, 2026. Portfolio invitation sent mid-Jan 2027. This is Vania's #1 target if she wants the strongest public B.Arch in the US at an affordable price. She has 5 months to sharpen her Norco transcript and build a portfolio that tells her story — Florence, Spain, construction, design. No one else applying has that story. Use it.",
+    masterPlan:"Cal Poly SLO B.Arch is NAAB-accredited — Vania can sit the ARE exams directly after graduation. For a master's, the SLO degree is highly respected at Harvard GSD, Columbia GSAPP, and TU Delft. Best long-term path: SLO B.Arch (2027–2032) → 2 yrs LA or cross-border firm → Harvard GSD or TU Delft M.Arch. Total investment: ~$160K undergrad + ~$130K grad vs. starting at a $58K–$78K salary.",
+    intlNote:null, deadline:"Dec 1, 2026 (transfer, Fall 2027)",
+    studentSat:"⭐⭐⭐⭐½", roi:"Highest ROI B.Arch → best master's launchpad"
+  },
+  {
+    name: "Columbia GSAPP",
+    location: "New York, NY",
+    type:"private", ca:false, intl:false,
+    rank:11, rankLabel:"Top 10 global",
+    archRank:"Top 5 global perspectives", overallRank:"#12 US News",
+    tuition:67000, tuitionLabel:"$67,000–$72,000/yr",
+    acceptance:13, acceptanceLabel:"~13%",
+    transferType:"competitive",
+    gpa:"3.8+", employRate:"~88%",
+    startSalary:"$70,000–$92,000",
+    accred:"NAAB", naab:true, degree:"B.S. + M.Arch",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. Columbia GSAPP has one of the most active Spanish-language architecture research communities among top US schools. NYC construction market heavily recruits bilingual project managers. Florence + Spain + Spanish = strong GSAPP match.",
+    highlight:"NYC setting. Global + cultural exchange focus. Strong urban design. International career prep.",
+    transferNote:"⏰ Transfer deadline: Mar 1, 2027. Columbia GSAPP is the most internationally minded school on this US list — and Vania is the most internationally experienced applicant most Columbia reviewers will see from a California CC. Florence + Spain + bilingual + community background = a Columbia essay that writes itself. Apply as a reach alongside Cal Poly SLO and UCLA.",
+    masterPlan:"Columbia's own M.Arch (3-yr or post-professional 1.5-yr) is a world-class continuation. GSAPP's Urban Design and Historic Preservation M.S. programs are also strong options if Vania develops an interest in heritage (Florence = direct relevance). Columbia B.S. → Columbia M.Arch is a natural internal path, or use Columbia's network for Harvard GSD.",
+    intlNote:null, deadline:"Mar 1, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐", roi:"Strong — NYC network + M.Arch pipeline"
+  },
+  {
+    name: "SCI-Arc — Southern California Institute of Architecture",
+    location: "Los Angeles, CA",
+    type:"private", ca:true, intl:false,
+    rank:12, rankLabel:"Top 10 US specialized",
+    archRank:"#8 Niche architecture", overallRank:"Architecture-only school",
+    tuition:57000, tuitionLabel:"$56,000–$59,000/yr",
+    acceptance:60, acceptanceLabel:"60–77%",
+    transferType:"friendly",
+    gpa:"3.5+", employRate:"~85%",
+    startSalary:"$55,000–$75,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"medium",
+    bilingualNote:"SCI-Arc is in LA — most bilingual architecture market in the US. Spanish-speaking graduates access the large Hispanic development sector. LA firms with Mexico City offices recruit bilingual architects actively.",
+    highlight:"LA Arts District. Experimental design. 80% receive aid (avg $25K). 9:1 student-faculty ratio. Rolling admissions.",
+    transferNote:"⏰ Priority deadline: Jan 15, 2027 — 8 months away. Rolling admissions means applying early = better aid. SCI-Arc is in Vania's own backyard (LA) and 80% of students receive financial aid averaging $25K. The portfolio is everything here — Florence sketches + Spain construction documents are exactly the kind of raw, real-world design work SCI-Arc faculty want to see. Don't overthink it. Start organizing her work now.",
+    masterPlan:"SCI-Arc offers its own M.Arch (3-yr) and M.Arch 2 (post-professional, 1.5-yr) — both focused on experimental and computational design. If Vania wants to specialize in digital fabrication, parametric design, or avant-garde residential work, SCI-Arc M.Arch is one of the most forward-looking options. NAAB-accredited — ARE path clear after B.Arch.",
+    intlNote:null, deadline:"Jan 15, 2027 (priority, Fall 2027)",
+    studentSat:"⭐⭐⭐⭐", roi:"Moderate undergrad — strong experimental M.Arch"
+  },
+  {
+    name: "Rice University",
+    location: "Houston, TX",
+    type:"private", ca:false, intl:false,
+    rank:13, rankLabel:"#2 Niche US arch",
+    archRank:"Top 5 employer recognition", overallRank:"#16 US News",
+    tuition:62000, tuitionLabel:"$62,000–$65,000/yr",
+    acceptance:8, acceptanceLabel:"8%",
+    transferType:"hard",
+    gpa:"3.9+", employRate:"~90%",
+    startSalary:"$65,000–$85,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. Houston has the 3rd-largest Hispanic population in the US and is a US-Mexico gateway city. Bilingual Rice architecture graduates are in extremely high demand. Net price $23,589 after aid.",
+    highlight:"Small + personalized. Strong studio culture. Houston's booming market. Net price $23,589 after aid.",
+    transferNote:"⏰ Transfer deadline: Mar 15, 2027. Very selective — apply as a stretch alongside Cal Poly SLO and UCLA. If Vania is open to Houston, this is worth the shot: net price after aid is ~$23,589/yr and the bilingual advantage in that market is immediate and substantial. A strong portfolio + compelling story of Florence + Spain + bilingual Inland Empire background could turn heads here.",
+    masterPlan:"Rice's own M.Arch (post-professional, 1-yr) is a fast upskilling option. But the bigger play: Rice B.Arch → 2 yrs at a top Houston or cross-border firm → Harvard GSD or TU Delft M.Arch. Rice's employer reputation score is one of the highest in the US — graduates have strong access to top firms that pay for part-time M.Arch programs.",
+    intlNote:null, deadline:"Mar 15, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐½", roi:"Strong — bilingual premium + best M.Arch launch"
+  },
+  {
+    name: "Virginia Tech — Architecture & Urban Studies",
+    location: "Blacksburg, VA",
+    type:"public", ca:false, intl:false,
+    rank:14, rankLabel:"#10 Niche US arch",
+    archRank:"Top 15 public B.Arch", overallRank:"#70 US News",
+    tuition:32000, tuitionLabel:"$32,000–$37,000/yr (OOS)",
+    acceptance:55, acceptanceLabel:"55%",
+    transferType:"friendly",
+    gpa:"3.5+", employRate:"~87%",
+    startSalary:"$58,000–$76,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"low",
+    bilingualNote:"Less bilingual market relevance in Blacksburg, VA, but Spanish fluency differentiates in the personal statement and is useful for federal architecture contracts with Latin American clients.",
+    highlight:"A+ Niche grade. Community engagement. Strong alumni network. Affordable OOS public option.",
+    transferNote:"⏰ Transfer deadline: Mar 1, 2027. Keep Virginia Tech as a solid safety option — 55% acceptance rate, NAAB-accredited, and genuinely respected. If Vania doesn't get into her top CA schools, this is a strong fallback that leads to the same career outcomes. Don't underestimate it — many top architects graduated from VT.",
+    masterPlan:"Virginia Tech offers an M.Arch and MS in Architecture — both well-regarded. The internal path (B.Arch → VT M.Arch) is affordable. For a higher-tier master's, VT B.Arch is NAAB-accredited and respected at Columbia, Yale, and Penn for graduate admissions. Consider VT as the B.Arch + then Columbia or GSD for M.Arch.",
+    intlNote:null, deadline:"Mar 1, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐", roi:"Good value — NAAB foundation for top M.Arch"
+  },
+  {
+    name: "Georgia Tech — School of Architecture",
+    location: "Atlanta, GA",
+    type:"public", ca:false, intl:false,
+    rank:15, rankLabel:"Top 10 US",
+    archRank:"Top 10 sustainable/smart city", overallRank:"#33 US News",
+    tuition:34000, tuitionLabel:"$34,000–$38,000/yr (OOS)",
+    acceptance:21, acceptanceLabel:"~21%",
+    transferType:"competitive",
+    gpa:"3.7+", employRate:"~90%",
+    startSalary:"$62,000–$82,000",
+    accred:"NAAB", naab:true, degree:"B.S. Arch + M.Arch",
+    bilingual:"medium",
+    bilingualNote:"Atlanta is a growing international hub. Georgia Tech has active Latin American exchange partnerships and bilingual graduates are sought for infrastructure + sustainable design projects in LATAM.",
+    highlight:"Smart city + sustainable design. Innovation-driven. Atlanta tech sector integration.",
+    transferNote:"⏰ Transfer deadline: Mar 1, 2027. If Vania gravitates toward the technical and sustainability side of architecture — smart cities, parametric design, green building — Georgia Tech is one of the best schools in the US for it. Her Spain internship experience with real construction documents is directly relevant to GT's tech-forward curriculum. Apply as a secondary non-CA option.",
+    masterPlan:"Georgia Tech's M.Arch is the direct continuation of the B.S. Arch and is particularly strong in computational design, sustainable systems, and smart cities. If Vania develops interest in technology-driven or sustainable architecture, GT M.Arch (2 yrs, in-state rates possible) is an excellent affordable option. NAAB-accredited — ARE path clear.",
+    intlNote:null, deadline:"Mar 1, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐", roi:"Strong — tech-arch M.Arch pipeline"
+  },
+  {
+    name: "UCLA — School of Arts and Architecture",
+    location: "Los Angeles, CA",
+    type:"public", ca:true, intl:false,
+    rank:16, rankLabel:"Top 15 US",
+    archRank:"Top LA public option", overallRank:"#15 US News",
+    tuition:43000, tuitionLabel:"$43,000–$47,000/yr (OOS)",
+    acceptance:23, acceptanceLabel:"~23% transfer",
+    transferType:"friendly",
+    gpa:"3.5+", employRate:"~88%",
+    startSalary:"$60,000–$80,000",
+    accred:"NAAB", naab:true, degree:"B.A. Arch + M.Arch path",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. UCLA has explicit focus on cross-border design and Latino urbanism. LA's architecture industry is deeply bilingual. Norco CC + Spanish + Spain internship = nearly ideal UCLA Arts & Architecture transfer profile.",
+    highlight:"Experimental + cross-disciplinary. 22.8% transfer rate. CA CC priority. LA creative hub.",
+    transferNote:"⏰ UC Application: Aug 1 opens, Nov 30 deadline. Arts & Architecture supplemental: Dec 1 — one day later, don't miss it. Vania is a California community college student, bilingual, with real international experience. UCLA transfers are 22.8% — and she's in the highest-priority category. This is her school. The clock starts August 1st. Be ready.",
+    masterPlan:"UCLA offers its own M.Arch (2–3 yrs) with a strong focus on social equity and urban design — perfectly aligned with Vania's bilingual/community profile. The B.A. Arch at UCLA is NOT NAAB-accredited at undergrad level, so the M.Arch is required to become a licensed architect in the US. This makes the B.A. → M.Arch a built-in 2-step plan. Total UCLA path: ~5 yrs UG + 2–3 yrs M.Arch.",
+    intlNote:null, deadline:"Nov 30 / Dec 1, 2026 (transfer + supp.)",
+    studentSat:"⭐⭐⭐⭐", roi:"Excellent CA value — M.Arch required for licensure"
+  },
+  {
+    name: "University of Cincinnati — DAAP",
+    location: "Cincinnati, OH",
+    type:"public", ca:false, intl:false,
+    rank:17, rankLabel:"#12 US 2026",
+    archRank:"#1 co-op program US", overallRank:"Top 100 US",
+    tuition:33000, tuitionLabel:"$33,000–$37,000/yr (OOS)",
+    acceptance:78, acceptanceLabel:"~78%",
+    transferType:"friendly",
+    gpa:"3.4+", employRate:"~92% (5 co-op semesters)",
+    startSalary:"$60,000–$78,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"low",
+    bilingualNote:"Cincinnati's market is less bilingual-driven, but DAAP's mandatory co-op semesters can be placed in Spanish-speaking markets — students have completed co-ops in Mexico City, Bogotá, or Madrid.",
+    highlight:"Mandatory paid co-op (5 semesters). 100% participation. 18+ months real-world experience before graduation.",
+    transferNote:"⏰ Transfer deadline: Mar 1, 2027. 78% acceptance rate — the most accessible NAAB school on this list. If Vania wants the most real-world experience before graduating, DAAP's co-op model is unmatched. She already has the mindset — she did an actual internship in Spain at 21. Request a Spanish-speaking co-op placement in Miami, Mexico City, or Madrid to extend that trajectory.",
+    masterPlan:"DAAP's B.Arch is NAAB-accredited — ARE exams available immediately. For a master's, the co-op experience and DAAP brand open doors at top programs. A practical long-term path: DAAP B.Arch (strong co-op portfolio) → M.Arch at Harvard GSD or Columbia, or an M.S. in Urban Design. DAAP graduates entering M.Arch programs bring the most real-world experience of any undergrad cohort.",
+    intlNote:null, deadline:"Mar 1, 2027 (transfer)",
+    studentSat:"⭐⭐⭐⭐", roi:"Strong — co-op experience boosts any M.Arch app"
+  },
+  {
+    name: "Cal Poly Pomona — Architecture",
+    location: "Pomona, CA",
+    type:"public", ca:true, intl:false,
+    rank:18, rankLabel:"Top CA public B.Arch",
+    archRank:"Top 20 public B.Arch", overallRank:"#10 West regional",
+    tuition:21000, tuitionLabel:"$21,000–$25,000/yr (OOS)",
+    acceptance:55, acceptanceLabel:"~55%",
+    transferType:"friendly",
+    gpa:"3.2+", employRate:"~85%",
+    startSalary:"$55,000–$72,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage — most practical of all schools. Cal Poly Pomona is in the Inland Empire, a predominantly Spanish-speaking region. Bilingual architects in the Pomona/Ontario/Fontana market are in extreme demand. Her Norco CC + Spanish = native-advantage pathway.",
+    highlight:"Most affordable NAAB B.Arch in CA. Strongest CC transfer pathway. Closest to Norco/Eastvale.",
+    transferNote:"⏰ SPRING 2027 apps are OPEN RIGHT NOW — deadline Aug 31, 2026. That is less than 4 months away. Vania could be enrolled at Cal Poly Pomona by January 2027. This is the closest NAAB school to her home, the most affordable B.Arch in California, and the one where her bilingual Spanish is a daily professional advantage — not just a line on a resume. If she's ready, there is no reason to wait.",
+    masterPlan:"Cal Poly Pomona B.Arch is NAAB-accredited — Vania can sit the ARE exams directly. For a master's, the smart play is: CPP B.Arch (affordable, close to home) → work 2 yrs in LA or Inland Empire → apply to UCLA M.Arch or UC Berkeley M.Arch (in-state CA rates) or even Harvard GSD/Columbia with a compelling bilingual + community practice story. This is the highest-ROI full path: ~$105K total undergrad + state-rate M.Arch vs. a $95K–$130K starting bilingual architect salary.",
+    intlNote:null, deadline:"Nov 30, 2026 (Fall); Aug 31, 2026 (Spring — OPEN NOW)",
+    studentSat:"⭐⭐⭐⭐", roi:"Best full-path ROI — affordable B.Arch → strong M.Arch"
+  },
+  {
+    name: "Syracuse University — School of Architecture",
+    location: "Syracuse, NY (+ Florence & London centers)",
+    type:"private", ca:false, intl:false,
+    rank:19, rankLabel:"Top 10 B.Arch US (technical)",
+    archRank:"#2 technical orientation US", overallRank:"#75 US News",
+    tuition:60000, tuitionLabel:"~$60,000/yr",
+    acceptance:29, acceptanceLabel:"~29% (arch program)",
+    transferType:"competitive",
+    gpa:"3.5+", employRate:"~87%",
+    startSalary:"$60,000–$80,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch",
+    bilingual:"medium",
+    bilingualNote:"Syracuse has study centers in Florence AND London — Vania's Florence experience is a direct credential match. Spanish fluency differentiates in the personal statement and opens doors to Syracuse's growing Latin American architecture partnerships.",
+    highlight:"Known as 'the math major's architecture school' — deeply technical, structures + engineering focused. Florence Study Center and London Study Center available. Top 3 school for technical rigor. Strong East Coast alumni network. Faculty recently received Rome Prize 2026.",
+    transferNote:"⏰ Transfer deadline: ~Mar 21, 2027. Requires portfolio submitted by email. Syracuse's Florence center means Vania would be returning to a city she already knows and loves — that's a genuine advantage in the application essay. Technical architecture background from Spain internship (construction documents) aligns with Syracuse's strengths.",
+    masterPlan:"Syracuse M.S. Architecture (post-professional) is a strong continuation, though not NAAB for licensure — plan for the B.Arch as the primary licensure path. For a master's, the Syracuse B.Arch NAAB credential opens doors at Harvard GSD, Columbia, and Penn. Syracuse alumni have a strong New York presence — important for Vania if she wants to target international firms with LATAM offices.",
+    intlNote:null, deadline:"~Mar 21, 2027 (transfer, portfolio by email)",
+    studentSat:"⭐⭐⭐⭐", roi:"Strong — technical + Florence connection"
+  },
+  {
+    name: "University of Notre Dame — School of Architecture",
+    location: "Notre Dame, IN (Rome semester required)",
+    type:"private", ca:false, intl:false,
+    rank:20, rankLabel:"Top 10 classical architecture US",
+    archRank:"#1 classical + traditional urbanism US", overallRank:"#29 US News",
+    tuition:65000, tuitionLabel:"~$65,000/yr",
+    acceptance:13, acceptanceLabel:"~13%",
+    transferType:"competitive",
+    gpa:"3.7+", employRate:"~88%",
+    startSalary:"$62,000–$82,000",
+    accred:"NAAB", naab:true, degree:"5-yr B.Arch (incl. Rome semester)",
+    bilingual:"high",
+    bilingualNote:"🌟 HIGH advantage. Notre Dame's architecture program has a mandatory Rome semester — Vania has already been to Italy. Her Florence study + bilingual background + interest in classical/heritage architecture aligns precisely with ND's mission. Spanish is a genuine advantage for ND's growing engagement with Latin American traditional urbanism projects.",
+    highlight:"Every student spends a semester in Rome — Vania already has Italian context. Classical architecture + traditional urbanism focus. NAAB B.Arch + NAAB M.Arch offered. Career Fair each spring draws firms from across the US. Architecture Student Opportunity Fund for students with financial need.",
+    transferNote:"⏰ Transfer deadline: ~Mar 15, 2027. Accepts sophomore-year transfers (27 transferable credits needed — check Norco coursework). Notre Dame is a reach school — but Vania's Florence background, bilingual profile, and interest in heritage/traditional design is exactly the kind of student their Rome-centered program was built for. Write the essay about what Florence meant to her.",
+    masterPlan:"Notre Dame's 2-yr M.Arch (professional, NAAB-accredited) is a natural continuation for those interested in classical design and urbanism. It includes a Rome semester — Vania would be going back to Italy with even more context. For a broader master's, the ND B.Arch opens doors at GSD, Yale (social design mission alignment), and TU Delft. ND alumni have strong placements at firms focused on civic, institutional, and heritage architecture.",
+    intlNote:null, deadline:"~Mar 15, 2027 (transfer, sophomore entry)",
+    studentSat:"⭐⭐⭐⭐½", roi:"Strong — Rome + classical + NAAB path"
+  }
+];
+
+let currentFilter = 'all';
+let currentSort = 'rank';
+
+function filterCards(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+function sortCards(type, btn) {
+  currentSort = type;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+function renderCards() {
+  let filtered = schools.filter(s => {
+    if (currentFilter === 'usonly') return !s.intl;
+    if (currentFilter === 'intl') return s.intl;
+    if (currentFilter === 'private') return s.type === 'private';
+    if (currentFilter === 'transfer') return s.transferType === 'friendly';
+    if (currentFilter === 'ca') return s.ca;
+    if (currentFilter === 'bilingual') return s.bilingual === 'high';
+    return true;
+  });
+  if (currentSort === 'tuition') filtered.sort((a,b) => a.tuition - b.tuition);
+  else if (currentSort === 'acceptance') filtered.sort((a,b) => b.acceptance - a.acceptance);
+  else filtered.sort((a,b) => a.rank - b.rank);
+
+  const grid = document.getElementById('cardGrid');
+  let html = '';
+
+  // When sorting by tuition or acceptance, always render a single flat sorted grid
+  const isSorted = currentSort !== 'rank';
+
+  if (!isSorted && currentFilter === 'all') {
+    const intl = filtered.filter(s => s.intl);
+    const us = filtered.filter(s => !s.intl);
+    if (intl.length) html += `<div class="sdiv blue">🌍 International Private Schools — QS Top Ranked + Spanish Advantage</div><div class="grid">${intl.map(renderCard).join('')}</div>`;
+    if (us.length) html += `<div class="sdiv">🇺🇸 United States Schools — Public & Private</div><div class="grid">${us.map(renderCard).join('')}</div>`;
+  } else if (!isSorted && currentFilter === 'bilingual') {
+    html += `<div class="sdiv gold">🌐 Schools where bilingual Spanish/English creates the strongest competitive advantage</div><div class="grid">${filtered.map(renderCard).join('')}</div>`;
+  } else {
+    const sortLabel = currentSort === 'tuition'
+      ? `Sorted by tuition — lowest to highest (${filtered.length} schools)`
+      : currentSort === 'acceptance'
+      ? `Sorted by acceptance rate — most accessible first (${filtered.length} schools)`
+      : `${filtered.length} schools`;
+    html = `<div class="sdiv">${sortLabel}</div><div class="grid">${filtered.map(renderCard).join('')}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function toFirstPerson(text) {
+  if (!text) return text;
+  return text
+    // Vania's → Your / vania's → your
+    .replace(/\bVania's\b/g, 'Your')
+    .replace(/\bvania's\b/g, 'your')
+    // Vania → You (standalone, not possessive)
+    .replace(/\bVania\b/g, 'You')
+    .replace(/\bvania\b/g, 'you')
+    // she already → you already, she did → you did, etc.
+    .replace(/\bShe\b/g, 'You')
+    .replace(/\bshe\b/g, 'you')
+    // her → your (possessive) — careful: "for her" → "for you"
+    .replace(/\bHer\b/g, 'Your')
+    .replace(/\bher\b/g, 'your')
+    // herself → yourself
+    .replace(/\bherself\b/g, 'yourself')
+    // she's → you're
+    .replace(/\bshe's\b/g, "you're")
+    .replace(/\bShe's\b/g, "You're");
+}
+
+function renderCard(s) {
+  const tcls = s.transferType === 'friendly' ? 'friendly' : s.transferType === 'competitive' ? 'competitive' : 'hard';
+  const tlbl = s.transferType === 'friendly' ? '✓ Transfer-friendly' : s.transferType === 'competitive' ? '~ Competitive transfer' : '✗ Transfer very limited';
+  const accBar = Math.min(s.acceptance, 100);
+  const tuBar = Math.round((s.tuition / 70000) * 100);
+  const cardCls = s.intl ? 'card intl' : (s.bilingual === 'high' ? 'card spanish' : 'card');
+  const accredBadge = s.naab ? '<span class="badge badge-naab">NAAB ✓</span>' : `<span class="badge badge-riba">${s.accred}</span>`;
+  const bilStar = s.bilingual === 'high'
+    ? '<div class="bil-star high">🌐 Bilingual HIGH</div>'
+    : s.bilingual === 'medium'
+    ? '<div class="bil-star medium">🌐 Bilingual MED</div>'
+    : '';
+  const noteClass = s.intl ? 'hnote intl' : 'hnote';
+
+  return `
+  <div class="${cardCls}">
+    <div class="card-header">
+      <div style="flex:1;min-width:0">
+        <div class="school-name">${s.name}</div>
+        <div class="school-location">${s.location}</div>
+        <div class="badge-row">
+          <span class="badge ${s.type === 'public' ? 'badge-public' : 'badge-private'}">${s.type}</span>
+          ${s.ca ? '<span class="badge badge-ca">California</span>' : ''}
+          ${s.intl ? '<span class="badge badge-intl">International</span>' : ''}
+          ${accredBadge}
+          ${bilStar}
+        </div>
+      </div>
+      <div class="rank-box">
+        <div class="rank-num">#${s.rank}</div>
+        <div class="rank-label">${s.intl ? 'Global' : 'US Rank'}</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Arch rank</div><div class="stat-val green" style="font-size:10px">${s.archRank}</div></div>
+      <div class="stat"><div class="stat-label">Overall rank</div><div class="stat-val" style="font-size:10px">${s.overallRank}</div></div>
+      <div class="stat"><div class="stat-label">Annual tuition</div><div class="stat-val orange" style="font-size:10px">${s.tuitionLabel}</div></div>
+      <div class="stat"><div class="stat-label">Employment</div><div class="stat-val green" style="font-size:10px">${s.employRate}</div></div>
+    </div>
+
+    <div class="stitle">Admission metrics</div>
+    <div class="bar-row">
+      <div class="bar-label">Acceptance</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${accBar}%;background:#006325"></div></div>
+      <div class="bar-val">${s.acceptanceLabel}</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Tuition (rel.)</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${tuBar}%;background:#854F0B"></div></div>
+      <div class="bar-val" style="font-size:9px">${s.tuitionLabel.split('/')[0]}</div>
+    </div>
+
+    <div class="stitle">Starting salary & ROI</div>
+    <div style="font-size:12px;font-weight:700;color:#213B34;margin-bottom:2px">${s.startSalary}</div>
+    <div style="font-size:10px;color:#5F5E5A">ROI: ${s.roi}</div>
+    <div style="font-size:10px;color:#5F5E5A">Min GPA: ${s.gpa} | ${s.accred}</div>
+    <div style="font-size:10px;color:#185FA5;margin-top:2px">📅 ${s.deadline}</div>
+
+    <span class="tbadge ${tcls}">${tlbl}</span>
+
+    ${s.bilingualNote ? `<div class="hnote bilingual" style="${s.bilingual==='high'?'border-left-color:#3B6D11;':'border-left-color:#7CC5EB;background:#E6F1FB;color:#042C53;'}"><strong>🌐 Bilingual advantage:</strong> ${toFirstPerson(s.bilingualNote)}</div>` : ''}
+
+    <div class="${noteClass}" style="margin-top:6px">
+      <strong>✅ Vania's recommended action:</strong> ${toFirstPerson(s.transferNote)}
+    </div>
+
+    <div style="margin-top:6px;font-size:11px;background:#F5F4F0;border-radius:6px;padding:7px 10px;border-left:3px solid #854F0B;line-height:1.5;color:#213B34">
+      <strong>🎓 Long-term Master's path:</strong> ${toFirstPerson(s.masterPlan)}
+    </div>
+
+    ${s.intlNote ? `<div style="margin-top:6px;font-size:10px;background:#E6F1FB;border-radius:6px;padding:7px 9px;color:#042C53;border-left:2px solid #7CC5EB;line-height:1.5"><strong>🌍 Intl. info:</strong> ${s.intlNote}</div>` : ''}
+
+    <div style="margin-top:7px;font-size:10px;color:#5F5E5A"><strong>Program:</strong> ${s.highlight}</div>
+    <div style="margin-top:4px;font-size:10px;color:#5F5E5A"><strong>Satisfaction:</strong> ${s.studentSat} | <strong>Degree:</strong> ${s.degree}</div>
+  </div>`;
+}
+
+renderCards();
+</script>
+</body>
+</html>
